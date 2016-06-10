@@ -2,7 +2,7 @@
 /dist/
 /*.egg-info
 /env*
-/build/
+build
 /.eggs/
 
 
