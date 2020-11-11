@@ -19,25 +19,48 @@ import os
 import platform
 import ctypes
 
+# path to root of v-rep installation
+vrep_path = os.environ.get('VREP')
+
+# mapping from platform name to remote API lib extension
+libext_map = {
+    'Windows': '.dll',
+    'Mac': '.dylib',
+    'Linux': '.so'
+}
+
+# mapping from `platform.system()` to v-rep platform name
+# pulled from v-rep's supplied mapping
+platform_map = {
+    'cli': 'Linux',
+    'Windows': 'Windows',
+    'Darwin': 'Mac'
+}
+
+libpath_fmt = os.path.join('{vrep_path}', 'programming', 'remoteApiBindings',
+                           'lib', 'lib', '{platform}', 
+
 
 def load_library():
-    """
-    Attempts to locate and load the v-rep remote API library via a VREP
-    environment variable, which is expected to describe the root installation
-    directory of v-rep.
-    """
-    try:
-        vrep_dir = os.environ['VREP']
-    except KeyError:
-        raise EnvVarNotSetError("VREP environment variable not set")
+    """Attempt to locate and load the v-rep remote API library.
 
-    lib_dir = os.path.join(
-        vrep_dir, 'programming', 'remoteApiBindings', 'lib', 'lib')
+    The ``VREP`` environment variable should be set so that the library can be
+    found. It should be set to the root directory of the v-rep installation.
+    """
+    if vrep_path is None:
+        raise PathNotSetError("VREP path not set")
+
+    lib_path = os.path.join(vrep_path, 'programming', 'remoteApiBindings',
+                            'lib', 'lib')
 
     if platform.architecture()[0] == '64bit':
-        lib_dir = os.path.join(lib_dir, '64Bit')
+        arch = '64Bit'
     else:
-        lib_dir = os.path.join(lib_dir, '32Bit')
+        arch = '32Bit'
+
+
+    libpath = os.path.join(vrep_path, 'programming', 'remoteApiBindings',
+            'lib', 'lib', platform
 
     if platform.system() == 'cli':
         lib_name = 'remoteApi.dll'
@@ -52,5 +75,5 @@ def load_library():
     return ctypes.CDLL(lib_path)
 
 
-class EnvVarNotSetError(RuntimeError):
+class PathNotSetError(RuntimeError):
     pass
